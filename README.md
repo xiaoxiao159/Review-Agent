@@ -1,301 +1,80 @@
-# Review Agent
+# 🚀 Review Agent — 用户评论智能分析系统
 
-> Full-stack review analytics platform built with FastAPI + Celery + LangGraph + Chroma + Vue.
-> 
-> It turns raw product reviews into structured negative-feedback insights with async processing, retrieval-augmented analysis, and a complete login-based user flow.
+> 一个面向产品与运营团队的 AI 分析系统，将海量用户评论转化为结构化、可执行的产品改进洞察。
 
 ---
 
-## 1. Project Overview
+## 🧩 一、项目背景
 
-Review Agent is an end-to-end project for product review analysis.
+在真实业务中，产品团队通常面临以下问题：
 
-It is designed to solve a common product-ops problem: teams receive many reviews, but negative feedback is scattered and hard to action quickly.
+- 用户评论数量快速增长，人工阅读成本极高  
+- 负面反馈分散，难以归类和总结  
+- 相同问题反复出现，但缺乏复用机制  
+- 产品决策依赖经验，而非数据支持  
 
-This project provides:
+👉 最终结果：
 
-- account-based access (register/login/refresh/logout/me)
-- async report generation pipeline (queue + worker)
-- structured analysis output (summary, reasons, keywords, suggestions)
-- similar historical case retrieval with vector search
-- front-end dashboard for task submission, polling, and visualization
-
----
-
-## 2. Why This Project Matters
-
-### Business pain points
-
-1. Manual review triage is slow when data volume grows.
-2. Negative feedback often lacks structured categorization.
-3. Similar historical complaints are hard to reuse.
-4. Token-copy testing flow does not match real product usage.
-
-### What this project delivers
-
-- login-first product flow instead of manual token input
-- automated negative-review insight extraction
-- reusable case recall via Chroma Top-K retrieval
-- visual dashboard for decision-friendly report reading
+> **团队知道“有问题”，但不知道“问题在哪里、为什么发生、优先解决什么”。**
 
 ---
 
-## 3. Core Features
+## 💡 二、项目解决方案
 
-### 3.1 Auth Center (Backend)
+**Review Agent** 提供端到端的评论分析能力，将“原始评论”转化为“可执行决策信息”。
 
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/refresh`
-- `POST /api/v1/auth/logout`
-- `GET /api/v1/auth/me`
-- `POST /api/v1/auth/forgot-password` (placeholder generic response)
+系统自动完成：
 
-### 3.2 Report APIs (Auth required)
-
-- `POST /api/v1/reports/analyze` → submit job, return `task_id`
-- `GET /api/v1/reports/status/{task_id}` → polling status
-- `GET /api/v1/reports/{task_id}` → fetch final report
-
-### 3.3 Frontend Dashboard (Vue)
-
-- login/register switch panel
-- authenticated report task submission
-- auto polling task status
-- report detail view with charts and similar cases
+- 📊 负面评论结构化总结（Summary）
+- 🧠 问题原因分析（Root Cause Analysis）
+- 🏷️ 关键词与问题分类
+- 💡 改进建议生成
+- 🔁 相似历史问题检索（向量搜索）
+- 📈 趋势可视化分析
 
 ---
 
-## 4. System Architecture
+## 🎯 三、适用人群
 
-```text
-[ Vue Dashboard ]
-       |
-       | HTTP (JWT access token)
-       v
-[ FastAPI API Layer ] ----------------------+
-       |                                     |
-       | enqueue task                        | read/write
-       v                                     v
-[ Celery + Redis Queue ]                [ PostgreSQL ]
-       |
-       | run async workflow
-       v
-[ LangGraph Analysis Pipeline ]
-       |
-       | retrieve similar reviews
-       v
-[ Chroma Vector Store ]
-       |
-       v
-[ Structured Analysis Report ]
-```
-
-### Processing flow
-
-1. User logs in and submits `product_id`.
-2. API creates async task and returns `task_id`.
-3. Worker loads reviews from DB.
-4. Reviews are indexed/retrieved via Chroma.
-5. LangGraph runs multi-node analysis.
-6. Result is stored and exposed by report APIs.
-7. Frontend polls until `completed` and renders charts/tables.
+- 产品经理：定位核心问题，辅助决策  
+- 运营团队：监控用户反馈趋势  
+- 客服团队：识别高频投诉  
 
 ---
 
-## 5. Tech Stack
+## ⭐ 四、项目亮点
 
-### Backend
-
-- FastAPI
-- SQLAlchemy (async) + asyncpg
-- Celery + Redis
-- LangGraph
-- ChromaDB
-- JWT auth (access + refresh session model)
-
-### Frontend
-
-- Vue 3 + TypeScript + Vite
-- Axios (access auto-inject + 401 refresh once)
-- ECharts + vue-echarts
-
-### Infra
-
-- Docker Compose
-- Services: `api`, `worker`, `frontend`, `postgres`, `redis`
+### 1. 不只是情感分析，而是问题归因
+不仅判断“好/坏”，还能分析：
+> 用户为什么不满？
 
 ---
 
-## 6. Quick Start
-
-### 6.1 Prepare env files
-
-In project root `review-agent`:
-
-```bash
-cp .env.example .env
-cp frontend/.env.example frontend/.env
-```
-
-PowerShell alternative:
-
-```powershell
-copy .env.example .env
-copy frontend\.env.example frontend\.env
-```
-
-### 6.2 Start all services
-
-```bash
-docker compose up -d --build
-```
-
-### 6.3 Open directly
-
-- Backend Swagger: `http://localhost:8000/docs`
-- Frontend Dashboard: `http://localhost:5173`
-- Health check: `http://localhost:8000/health`
+### 2. 检索增强分析（RAG 实战）
+- 使用 Chroma 做语义检索  
+- 引入历史相似案例  
+- 提升分析结果的稳定性和可解释性  
 
 ---
 
-## 7. Default Login (for local demo)
-
-Default admin account is initialized on startup:
-
-- username: `admin`
-- password: `Admin@123456`
-
-You can override in `.env`:
-
-- `DEFAULT_ADMIN_USERNAME`
-- `DEFAULT_ADMIN_PASSWORD`
-- `DEFAULT_ADMIN_EMAIL`
+### 3. 异步任务架构（接近真实生产）
+- Celery + Redis 处理长任务  
+- 前端轮询任务状态  
+- 支持大规模评论分析  
 
 ---
 
-## 8. Frontend Usage Flow
+### 4. 完整产品闭环（非 Demo）
+包含：
 
-1. Open `http://localhost:5173`
-2. Login with admin (or register a new user)
-3. Input `product_id` (optional date range)
-4. Click `开始分析`
-5. Wait until task status becomes `completed`
-6. Read summary, categories, keywords, suggestions, trend chart, and similar cases
+- 用户系统（登录/注册）
+- 任务提交
+- 异步处理
+- 数据存储
+- 可视化展示
 
----
-
-## 9. API Contract Snapshot
-
-### 9.1 Login
-
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
-
-{
-  "username": "admin",
-  "password": "Admin@123456"
-}
-```
-
-### 9.2 Submit analyze task
-
-```http
-POST /api/v1/reports/analyze
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "product_id": "p001",
-  "date_range": {
-    "start": "2025-01-01",
-    "end": "2025-03-31"
-  }
-}
-```
-
-### 9.3 Response example
-
-```json
-{
-  "task_id": "4f5d6f8e-..."
-}
-```
+👉 体现全栈工程能力 + AI能力
 
 ---
 
-## 10. Testing
-
-Run backend tests in container:
-
-```bash
-docker compose exec api bash -lc "pip install -r requirements.txt && python -m pytest --cov=app --cov-report=term-missing"
-```
-
-Run frontend build check:
-
-```bash
-docker compose exec frontend npm run build
-```
-
----
-
-## 11. Project Structure
-
-```text
-review-agent/
-├─ app/
-│  ├─ core/                 # config, LangGraph, RAG
-│  ├─ crud/                 # DB data access
-│  ├─ dependencies/         # auth/db/current_user deps
-│  ├─ models/               # SQLAlchemy models
-│  ├─ routers/              # auth + reports routes
-│  ├─ schemas/              # request/response schemas
-│  ├─ services/             # auth/report/task/bootstrap logic
-│  └─ utils/                # unified exceptions
-├─ frontend/
-│  ├─ src/api/              # axios client + auth refresh logic
-│  ├─ src/types/            # TS interfaces
-│  └─ src/App.vue           # login + dashboard UI
-├─ tests/                   # router/service/rag/agent tests
-├─ docker-compose.yml
-└─ requirements.txt
-```
-
----
-
-## 12. Resume-Oriented Highlights
-
-This section can be reused directly in your resume bullets.
-
-- Designed and implemented a full-stack review analytics platform with FastAPI, Celery, LangGraph, Chroma, and Vue.
-- Built a production-style authentication center (register/login/refresh/logout/me) and migrated frontend from manual token input to login-first workflow.
-- Implemented async task orchestration and status polling for long-running analysis jobs.
-- Added vector retrieval of historical similar negative reviews to improve actionability of generated reports.
-- Delivered end-to-end Docker Compose local environment with API docs, frontend dashboard, and test coverage workflow.
-
----
-
-## 13. Security Notes
-
-- Never commit real secrets to `.env.example`.
-- Rotate any leaked key immediately.
-- Use secret manager for production environments.
-- Keep JWT secrets and DB credentials out of source control.
-
----
-
-## 14. Roadmap
-
-- Add Alembic migrations for users/auth_sessions/reviews
-- Implement real password reset + email verification
-- Add auth rate limiting and audit logs
-- Add task metrics (latency/failure reason/queue depth)
-- Split frontend into route-level pages (Login/Dashboard)
-
----
-
-## 15. License
-
-Internal project, follow your team policy for external publication.
+## 🏗️ 五、系统架构
